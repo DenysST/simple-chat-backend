@@ -10,7 +10,7 @@ CORS(app)
 @socketio.on('message')
 def handle_message(message):
     print('Message received:', message)
-    emit('message', message + " fuck", broadcast=True)
+    emit('message', message, broadcast=True)
 
 
 if __name__ == '__main__':
