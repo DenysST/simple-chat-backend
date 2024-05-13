@@ -1,17 +1,33 @@
-from flask import Flask
-from flask_cors import CORS
-from flask_socketio import SocketIO, emit
-
-app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
-CORS(app)
+import asyncio
+import websockets
+import time
 
 
-@socketio.on('message')
-def handle_message(message):
-    print('Message received:', message)
-    emit('message', message, broadcast=True)
+async def echo_server(websocket):
+    async for message in websocket:
+        if message == 'received':
+            continue
+        print(f"Received message: {message}")
+        response = ""
+        if message == "Hello":
+            response = "Hello from server"
+        if message == "status":
+            response = "new"
+        if message == "new session":
+            response = "ready"
+        if message == "send":
+            time.sleep(2)
+            end_time = time.time() + 1
+            while time.time() < end_time:
+                response = "ready"
+        if message == "stop":
+            response = "stop"
+        await asyncio.sleep(2)
+        await websocket.send(response)
 
+async def main():
+    server = await websockets.serve(echo_server, "localhost", 8765)
+    print("WebSocket server started")
+    await server.wait_closed()
 
-if __name__ == '__main__':
-    socketio.run(app, log_output=True, use_reloader=True)
+asyncio.run(main())
